@@ -45,14 +45,14 @@ This application evaluates heart disease risk based on clinical parameters and p
 2. **Set Up a Virtual Environment** (Optional but Recommended)
    ```bash
    python -m venv venv
-   pip install streamlit joblib numpy pandas matplotlib seaborn hugchat
+   
    ```
 
 3. **Install Dependencies**
    Install the required Python packages using `requirements.txt`:
    ```bash
-   pip install -r requirements.txt
-   ```
+   pip install streamlit joblib numpy pandas matplotlib seaborn hugchat
+```
 
 4. **Download Additional Resources** (If Applicable)
    - If the app uses external models or datasets, download them and place them in the appropriate directory as specified in the code.

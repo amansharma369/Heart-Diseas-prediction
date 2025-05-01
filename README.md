@@ -1,3 +1,4 @@
+
 Certainly! Below is a well-structured **README.md** file for initializing and running the Heart Disease Prediction application. This README provides clear instructions on setting up the environment, configuring dependencies, and running the app.
 
 ---
@@ -51,11 +52,11 @@ This application evaluates heart disease risk based on clinical parameters and p
 3. **Install Dependencies**
    Install the required Python packages using `requirements.txt`:
    ```bash
-   pip install streamlit joblib numpy pandas matplotlib seaborn hugchat
-```
+   pip install streamlit joblib numpy pandas matplotlib seaborn hugchat ```
 
 4. **Download Additional Resources** (If Applicable)
-   - If the app uses external models or datasets, download them and place them in the appropriate directory as specified in the code.
+
+ - If the app uses external models or datasets, download them and place them in the appropriate directory as specified in the code.
    - ![image](https://github.com/user-attachments/assets/2791da85-1fb6-4442-aed6-69b17a5b9e6a)
   
    - ![image](https://github.com/user-attachments/assets/fb4373e6-f064-4bd0-b616-b70d9afda9eb)

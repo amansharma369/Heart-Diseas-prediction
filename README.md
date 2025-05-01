@@ -60,23 +60,27 @@ This application evaluates heart disease risk based on clinical parameters and p
   
    - ![image](https://github.com/user-attachments/assets/fb4373e6-f064-4bd0-b616-b70d9afda9eb)
 
-   ![image](https://github.com/user-attachments/assets/3c38c07e-f208-4f5c-bcdc-58476becbf51)
+   - ![image](https://github.com/user-attachments/assets/3c38c07e-f208-4f5c-bcdc-58476becbf51)
 
-   ![image](https://github.com/user-attachments/assets/d867ec58-7645-4588-bb4e-660ff618c62c)
+   - ![image](https://github.com/user-attachments/assets/d867ec58-7645-4588-bb4e-660ff618c62c)
 
-![IMG_20250501_194139](https://github.com/user-attachments/assets/2d9fc060-8b2e-4b7f-a81a-1a2abfcddc07)
+     ## Custom GUI
 
-   
+   - ![IMG_20250501_194139](https://github.com/user-attachments/assets/2d9fc060-8b2e-4b7f-a81a-1a2abfcddc07)
 
+   - IMG_20250501_194058](https://github.com/user-attachments/assets/973a8764-3e57-460e-b4fa-31ed7d0d92dd)
 
+   - ![IMG_20250501_194123](https://github.com/user-attachments/assets/ef5c7010-ff7b-47f3-9b2f-5facbc53956b)
 
+![IMG_20250501_194139](https://github.com/user-attachments/assets/aff809ec-23ce-4eaa-8074-f6fc66e20bc1)
+
+![IMG_20250501_194156](https://github.com/user-attachments/assets/0dc5154a-bc55-493d-84e1-082a55744f29)
 
 ---
 
 ## Configuration
 
-### Hugging Face Login (Optional for AI Advisor)
-To enable the AI Health Advisor feature, you need to configure your Hugging Face credentials:
+### Hugging Face Login (Optional for AI Advisor)To enable the AI Health Advisor feature, you need to configure your Hugging Face credentials:
 1. Create a `.env` file in the root directory of the project.
 2. Add the following lines to the `.env` file:
    ```env

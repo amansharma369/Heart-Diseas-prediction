@@ -52,7 +52,7 @@ This application evaluates heart disease risk based on clinical parameters and p
 3. **Install Dependencies**
    Install the required Python packages using `requirements.txt`:
    ```bash
-   pip install streamlit joblib numpy pandas matplotlib seaborn hugchat ```
+   pip install streamlit joblib numpy pandas matplotlib seaborn hugchat 
 
 4. **Download Additional Resources** (If Applicable)
 

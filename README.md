@@ -61,6 +61,9 @@ This application evaluates heart disease risk based on clinical parameters and p
    - ![image](https://github.com/user-attachments/assets/fb4373e6-f064-4bd0-b616-b70d9afda9eb)
 
    ![image](https://github.com/user-attachments/assets/3c38c07e-f208-4f5c-bcdc-58476becbf51)
+
+   ![image](https://github.com/user-attachments/assets/d867ec58-7645-4588-bb4e-660ff618c62c)
+
    
 
 

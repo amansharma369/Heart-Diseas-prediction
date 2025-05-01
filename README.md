@@ -122,6 +122,10 @@ pip install -r requirements.txt
 
 ---
 
+## Deployment
+
+
+
 ## Disclaimer
 
 This tool is intended for educational and informational purposes only. It does **not** provide medical advice or replace professional healthcare services. Always consult with a qualified healthcare provider for medical concerns.

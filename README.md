@@ -56,6 +56,8 @@ This application evaluates heart disease risk based on clinical parameters and p
 
 4. **Download Additional Resources** (If Applicable)
    - If the app uses external models or datasets, download them and place them in the appropriate directory as specified in the code.
+   - ![image](https://github.com/user-attachments/assets/2791da85-1fb6-4442-aed6-69b17a5b9e6a)
+
 
 ---
 

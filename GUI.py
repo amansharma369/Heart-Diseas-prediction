@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from hugchat import hugchat
 from hugchat.login import Login
-import random
+
 # Set page config
 st.set_page_config(
     page_title="Heart Disease Prediction",
@@ -59,7 +59,7 @@ feature_info = {
 RISK_THRESHOLDS = {
     "Low": 0.3,
     "Moderate": 0.6,
-    "High": 0.9
+    "High": 1.0
 }
 
 # Sample healthy and unhealthy profiles
@@ -87,31 +87,109 @@ SAMPLE_PROFILES = {
     }
 }
 
+def calculate_risk(inputs):
+    """Calculate heart disease risk based on clinical parameters"""
+    risk_factors = 0
+    total_possible = 13  # Total parameters being evaluated
+    risk_details = []
+    risk_params = []
 
-# Fake prediction function
-def fake_predict():
-    import random
-    # Randomly select a risk level for demonstration
-    risk_level = random.choice(["Low", "Moderate", "High"])
+    if inputs['age'] > 60:
+        risk_factors += 1
+        risk_details.append(f"- Age: {inputs['age']} (Risk: 60+)")
+        risk_params.append('age')
+    if inputs['sex'] == 'Male':
+        risk_factors += 1
+        risk_details.append("- Sex: Male (Higher risk)")
+        risk_params.append('sex')
+    if inputs['cp'] == 'Asymptomatic':
+        risk_factors += 1
+        risk_details.append("- Chest Pain: Asymptomatic (Highest risk)")
+        risk_params.append('cp')
+    elif inputs['cp'] in ['Atypical angina', 'Non-anginal pain']:
+        risk_factors += 0.5
+        risk_details.append(f"- Chest Pain: {inputs['cp']} (Moderate risk)")
+    if inputs['trestbps'] >= 140:
+        risk_factors += 1
+        risk_details.append(f"- Blood Pressure: {inputs['trestbps']} mmHg (Stage 2 Hypertension)")
+        risk_params.append('trestbps')
+    elif inputs['trestbps'] >= 130:
+        risk_factors += 0.5
+        risk_details.append(f"- Blood Pressure: {inputs['trestbps']} mmHg (Elevated)")
+    if inputs['chol'] >= 240:
+        risk_factors += 1
+        risk_details.append(f"- Cholesterol: {inputs['chol']} mg/dL (High)")
+        risk_params.append('chol')
+    elif inputs['chol'] >= 200:
+        risk_factors += 0.5
+        risk_details.append(f"- Cholesterol: {inputs['chol']} mg/dL (Borderline High)")
+    if inputs['fbs'] == 'Yes':
+        risk_factors += 1
+        risk_details.append("- Fasting Blood Sugar > 120 mg/dL")
+        risk_params.append('fbs')
+    if inputs['restecg'] == 'Left ventricular hypertrophy':
+        risk_factors += 1
+        risk_details.append("- ECG: Left Ventricular Hypertrophy")
+        risk_params.append('restecg')
+    elif inputs['restecg'] == 'ST-T wave abnormality':
+        risk_factors += 0.5
+        risk_details.append("- ECG: ST-T Wave Abnormality")
+    if inputs['thalach'] < 120:
+        risk_factors += 1
+        risk_details.append(f"- Max Heart Rate: {inputs['thalach']} (Low)")
+        risk_params.append('thalach')
+    if inputs['exang'] == 'Yes':
+        risk_factors += 1
+        risk_details.append("- Exercise Induced Angina: Yes")
+        risk_params.append('exang')
+    if inputs['oldpeak'] >= 2.0:
+        risk_factors += 1
+        risk_details.append(f"- ST Depression: {inputs['oldpeak']} (High)")
+        risk_params.append('oldpeak')
+    elif inputs['oldpeak'] >= 1.0:
+        risk_factors += 0.5
+        risk_details.append(f"- ST Depression: {inputs['oldpeak']} (Moderate)")
+    if inputs['slope'] == 'Downsloping':
+        risk_factors += 1
+        risk_details.append("- ST Slope: Downsloping (Highest risk)")
+        risk_params.append('slope')
+    elif inputs['slope'] == 'Flat':
+        risk_factors += 0.5
+        risk_details.append("- ST Slope: Flat (Moderate risk)")
+    if inputs['ca'] == '3':
+        risk_factors += 1
+        risk_details.append("- Major Vessels: 3 (Highest risk)")
+        risk_params.append('ca')
+    elif inputs['ca'] in ['1', '2']:
+        risk_factors += 0.5
+        risk_details.append(f"- Major Vessels: {inputs['ca']} (Moderate risk)")
+    if inputs['thal'] == 'Fixed defect':
+        risk_factors += 1
+        risk_details.append("- Thalassemia: Fixed Defect")
+        risk_params.append('thal')
+    elif inputs['thal'] == 'Reversible defect':
+        risk_factors += 0.5
+        risk_details.append("- Thalassemia: Reversible Defect")
 
-    if risk_level == "Low":
-        prediction_proba = round(random.uniform(0.01, 0.29), 2)  # 1% to 29%
+    probability = min(risk_factors / total_possible, 0.99)  # Cap at 99%
+
+    if probability <= RISK_THRESHOLDS['Low']:
+        risk_level = 'Low'
         color = "green"
         icon = "✅"
         advice = "Maintain your healthy lifestyle with regular check-ups."
-    elif risk_level == "Moderate":
-        prediction_proba = round(random.uniform(0.30, 0.59), 2)  # 30% to 59%
+    elif probability <= RISK_THRESHOLDS['Moderate']:
+        risk_level = 'Moderate'
         color = "orange"
         icon = "⚠️"
         advice = "Consider lifestyle changes and consult your doctor."
-    else:  # High Risk
-        prediction_proba = round(random.uniform(0.60, 0.99), 2)  # 60% to 99%
+    else:
+        risk_level = 'High'
         color = "red"
         icon = "❗"
-        advice = "Please consult a cardiologist for further evaluation."
+        advice = "Please consult a cardiologist immediately."
 
-    return risk_level, prediction_proba, color, icon, advice
-
+    return risk_level, probability, color, icon, advice, risk_details, risk_params
 
 # Initialize LLM chatbot (Optional for AI Advisor)
 @st.cache_resource
@@ -123,7 +201,6 @@ def init_chatbot():
     except Exception as e:
         st.error(f"Failed to initialize chatbot: {e}")
         return None
-
 
 chatbot = init_chatbot()
 
@@ -137,7 +214,6 @@ This tool evaluates your heart disease risk based on clinical parameters and pro
 tab1, tab2, tab3 = st.tabs(["Risk Assessment", "Parameter Analysis", "Health Guidance"])
 
 with tab1:
-    # Prediction form
     with st.form("heart_form"):
         st.subheader("Enter Your Health Parameters")
         col1, col2, col3 = st.columns(3)
@@ -145,83 +221,107 @@ with tab1:
 
         # Column 1
         with col1:
-            inputs["age"] = st.number_input(feature_info["age"]["label"],
-                                            min_value=feature_info["age"]["min"],
-                                            max_value=feature_info["age"]["max"],
-                                            value=feature_info["age"]["value"],
-                                            help=f"{feature_info['age']['desc']}. Healthy range: {feature_info['age']['healthy_range']}")
-            inputs["sex"] = st.selectbox(feature_info["sex"]["label"],
-                                         feature_info["sex"]["options"],
-                                         help=feature_info["sex"]["desc"])
-            inputs["cp"] = st.selectbox(feature_info["cp"]["label"],
-                                        feature_info["cp"]["options"],
-                                        index=0,
-                                        help=f"{feature_info['cp']['desc']}. Healthy: {feature_info['cp']['healthy']}")
-            inputs["trestbps"] = st.number_input(feature_info["trestbps"]["label"],
-                                                 min_value=feature_info["trestbps"]["min"],
-                                                 max_value=feature_info["trestbps"]["max"],
-                                                 value=feature_info["trestbps"]["value"],
-                                                 help=f"{feature_info['trestbps']['desc']}. Healthy: {feature_info['trestbps']['healthy_range']}")
-            inputs["chol"] = st.number_input(feature_info["chol"]["label"],
-                                             min_value=feature_info["chol"]["min"],
-                                             max_value=feature_info["chol"]["max"],
-                                             value=feature_info["chol"]["value"],
-                                             help=f"{feature_info['chol']['desc']}. Healthy: {feature_info['chol']['healthy_range']}")
+            inputs["age"] = st.number_input(
+                feature_info["age"]["label"],
+                min_value=feature_info["age"]["min"],
+                max_value=feature_info["age"]["max"],
+                value=st.session_state.get("age", feature_info["age"]["value"]),
+                help=f"{feature_info['age']['desc']}. Healthy range: {feature_info['age']['healthy_range']}"
+            )
+            inputs["sex"] = st.selectbox(
+                feature_info["sex"]["label"],
+                feature_info["sex"]["options"],
+                index=feature_info["sex"]["options"].index(st.session_state.get("sex", feature_info["sex"]["options"][0])),
+                help=feature_info["sex"]["desc"]
+            )
+            inputs["cp"] = st.selectbox(
+                feature_info["cp"]["label"],
+                feature_info["cp"]["options"],
+                index=feature_info["cp"]["options"].index(st.session_state.get("cp", feature_info["cp"]["options"][0])),
+                help=f"{feature_info['cp']['desc']}. Healthy: {feature_info['cp']['healthy']}"
+            )
+            inputs["trestbps"] = st.number_input(
+                feature_info["trestbps"]["label"],
+                min_value=feature_info["trestbps"]["min"],
+                max_value=feature_info["trestbps"]["max"],
+                value=st.session_state.get("trestbps", feature_info["trestbps"]["value"]),
+                help=f"{feature_info['trestbps']['desc']}. Healthy: {feature_info['trestbps']['healthy_range']}"
+            )
+            inputs["chol"] = st.number_input(
+                feature_info["chol"]["label"],
+                min_value=feature_info["chol"]["min"],
+                max_value=feature_info["chol"]["max"],
+                value=st.session_state.get("chol", feature_info["chol"]["value"]),
+                help=f"{feature_info['chol']['desc']}. Healthy: {feature_info['chol']['healthy_range']}"
+            )
 
         # Column 2
         with col2:
-            inputs["fbs"] = st.selectbox(feature_info["fbs"]["label"],
-                                         feature_info["fbs"]["options"],
-                                         help=f"{feature_info['fbs']['desc']}. Healthy: {feature_info['fbs']['healthy']}")
-            inputs["restecg"] = st.selectbox(feature_info["restecg"]["label"],
-                                             feature_info["restecg"]["options"],
-                                             help=f"{feature_info['restecg']['desc']}. Healthy: {feature_info['restecg']['healthy']}")
-            inputs["thalach"] = st.number_input(feature_info["thalach"]["label"],
-                                                min_value=feature_info["thalach"]["min"],
-                                                max_value=feature_info["thalach"]["max"],
-                                                value=feature_info["thalach"]["value"],
-                                                help=f"{feature_info['thalach']['desc']}. Healthy: {feature_info['thalach']['healthy_range']}")
-            inputs["exang"] = st.selectbox(feature_info["exang"]["label"],
-                                           feature_info["exang"]["options"],
-                                           help=f"{feature_info['exang']['desc']}. Healthy: {feature_info['exang']['healthy']}")
-            inputs["oldpeak"] = st.number_input(feature_info["oldpeak"]["label"],
-                                                min_value=feature_info["oldpeak"]["min"],
-                                                max_value=feature_info["oldpeak"]["max"],
-                                                value=feature_info["oldpeak"]["value"],
-                                                step=feature_info["oldpeak"]["step"],
-                                                help=f"{feature_info['oldpeak']['desc']}. Healthy: {feature_info['oldpeak']['healthy_range']}")
+            inputs["fbs"] = st.selectbox(
+                feature_info["fbs"]["label"],
+                feature_info["fbs"]["options"],
+                index=feature_info["fbs"]["options"].index(st.session_state.get("fbs", feature_info["fbs"]["options"][0])),
+                help=f"{feature_info['fbs']['desc']}. Healthy: {feature_info['fbs']['healthy']}"
+            )
+            inputs["restecg"] = st.selectbox(
+                feature_info["restecg"]["label"],
+                feature_info["restecg"]["options"],
+                index=feature_info["restecg"]["options"].index(st.session_state.get("restecg", feature_info["restecg"]["options"][0])),
+                help=f"{feature_info['restecg']['desc']}. Healthy: {feature_info['restecg']['healthy']}"
+            )
+            inputs["thalach"] = st.number_input(
+                feature_info["thalach"]["label"],
+                min_value=feature_info["thalach"]["min"],
+                max_value=feature_info["thalach"]["max"],
+                value=st.session_state.get("thalach", feature_info["thalach"]["value"]),
+                help=f"{feature_info['thalach']['desc']}. Healthy: {feature_info['thalach']['healthy_range']}"
+            )
+            inputs["exang"] = st.selectbox(
+                feature_info["exang"]["label"],
+                feature_info["exang"]["options"],
+                index=feature_info["exang"]["options"].index(st.session_state.get("exang", feature_info["exang"]["options"][0])),
+                help=f"{feature_info['exang']['desc']}. Healthy: {feature_info['exang']['healthy']}"
+            )
+            inputs["oldpeak"] = st.number_input(
+                feature_info["oldpeak"]["label"],
+                min_value=feature_info["oldpeak"]["min"],
+                max_value=feature_info["oldpeak"]["max"],
+                value=st.session_state.get("oldpeak", feature_info["oldpeak"]["value"]),
+                step=feature_info["oldpeak"]["step"],
+                help=f"{feature_info['oldpeak']['desc']}. Healthy: {feature_info['oldpeak']['healthy_range']}"
+            )
 
         # Column 3
         with col3:
-            inputs["slope"] = st.selectbox(feature_info["slope"]["label"],
-                                           feature_info["slope"]["options"],
-                                           help=f"{feature_info['slope']['desc']}. Healthy: {feature_info['slope']['healthy']}")
-            inputs["ca"] = st.selectbox(feature_info["ca"]["label"],
-                                        feature_info["ca"]["options"],
-                                        help=f"{feature_info['ca']['desc']}. Healthy: {feature_info['ca']['healthy']}")
-            inputs["thal"] = st.selectbox(feature_info["thal"]["label"],
-                                          feature_info["thal"]["options"],
-                                          help=f"{feature_info['thal']['desc']}. Healthy: {feature_info['thal']['healthy']}")
+            inputs["slope"] = st.selectbox(
+                feature_info["slope"]["label"],
+                feature_info["slope"]["options"],
+                index=feature_info["slope"]["options"].index(st.session_state.get("slope", feature_info["slope"]["options"][0])),
+                help=f"{feature_info['slope']['desc']}. Healthy: {feature_info['slope']['healthy']}"
+            )
+            inputs["ca"] = st.selectbox(
+                feature_info["ca"]["label"],
+                feature_info["ca"]["options"],
+                index=feature_info["ca"]["options"].index(st.session_state.get("ca", feature_info["ca"]["options"][0])),
+                help=f"{feature_info['ca']['desc']}. Healthy: {feature_info['ca']['healthy']}"
+            )
+            inputs["thal"] = st.selectbox(
+                feature_info["thal"]["label"],
+                feature_info["thal"]["options"],
+                index=feature_info["thal"]["options"].index(st.session_state.get("thal", feature_info["thal"]["options"][0])),
+                help=f"{feature_info['thal']['desc']}. Healthy: {feature_info['thal']['healthy']}"
+            )
 
         submitted = st.form_submit_button("Assess My Heart Disease Risk")
 
     if submitted:
-        # Simulate fake prediction
-        risk_level, prediction_proba, color, icon, advice = fake_predict()
+        risk_level, prediction_proba, color, icon, advice, risk_details, risk_params = calculate_risk(inputs)
 
-        # Display results
         st.subheader("Risk Assessment Results")
-        # Risk meter
         cols = st.columns(3)
         with cols[1]:
-            st.metric("Heart Disease Risk",
-                      f"{prediction_proba * 100:.1f}%",
-                      f"{risk_level} Risk",
-                      delta_color="off")
-        # Progress bar with color coding
-        risk_meter = st.progress(0)
-        risk_meter.progress(prediction_proba)
-        # Risk indicators
+            st.metric("Heart Disease Risk", f"{prediction_proba * 100:.1f}%", f"{risk_level} Risk", delta_color="off")
+        risk_meter = st.progress(prediction_proba)
         st.markdown(f"""
         <div style="background-color:#f0f2f6;padding:15px;border-radius:10px">
             <h4 style="color:{color};text-align:center">{icon} {risk_level} Risk Category</h4>
@@ -229,23 +329,20 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
 
-        # Parameter analysis
-        st.subheader("Parameter Analysis")
-        risk_factors = random.randint(0, 5)  # Random number of risk factors
-        total_factors = 10  # Assume 10 total parameters for simplicity
-        risk_details = [f"- Parameter {i + 1}: Outside healthy range" for i in range(risk_factors)]
-
-        st.write(f"**{risk_factors} out of {total_factors}** parameters outside healthy ranges:")
+        st.subheader("Risk Factor Analysis")
+        total_factors = 13
+        risk_factors = len(risk_details)
+        st.write(f"**{risk_factors} out of {total_factors}** parameters show elevated risk:")
         if risk_details:
             st.markdown("\n".join(risk_details))
         else:
             st.success("All parameters are within healthy ranges!")
 
-        # Store results for other tabs
         st.session_state.results = {
             "risk_level": risk_level,
             "probability": prediction_proba,
             "risk_factors": risk_details,
+            "risk_params": risk_params,
             "inputs": inputs
         }
 
@@ -254,26 +351,21 @@ with tab2:
     if "results" not in st.session_state:
         st.warning("Please complete the risk assessment first.")
     else:
-        # Create radar chart for risk visualization
         st.subheader("Health Parameter Radar Chart")
-        # Select key parameters to visualize
         radar_params = ["age", "trestbps", "chol", "thalach", "oldpeak"]
         radar_labels = [feature_info[p]["label"] for p in radar_params]
         radar_values = [st.session_state.results["inputs"][p] for p in radar_params]
 
-        # Normalize values for radar chart (0-1 scale)
         max_values = {
             "age": 100,
             "trestbps": 200,
-            "chol": 300,
-            "thalach": 200,
-            "oldpeak": 4.0
+            "chol": 600,
+            "thalach": 220,
+            "oldpeak": 6.0
         }
         normalized_values = [v / max_values[p] for v, p in zip(radar_values, radar_params)]
-
-        # Create radar chart
         angles = np.linspace(0, 2 * np.pi, len(radar_labels), endpoint=False).tolist()
-        angles += angles[:1]  # Close the loop
+        angles += angles[:1]
         normalized_values += normalized_values[:1]
         fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
         ax.fill(angles, normalized_values, color='red', alpha=0.25)
@@ -284,18 +376,16 @@ with tab2:
         ax.set_title("Your Health Parameters (Normalized)", pad=20)
         st.pyplot(fig)
 
-        # Parameter comparison table
         st.subheader("Parameter Comparison")
         comparison_data = []
         for param in ["age", "trestbps", "chol", "thalach", "oldpeak"]:
             info = feature_info[param]
+            status = "⚠️ Out of Range" if param in st.session_state.results["risk_params"] else "✅ Within Range"
             comparison_data.append({
                 "Parameter": info["label"],
                 "Your Value": st.session_state.results["inputs"][param],
                 "Healthy Range": info.get("healthy_range", info.get("healthy", "")),
-                "Status": "✅ Within Range" if param not in [rf.split(":")[0].strip("- ") for rf in
-                                                            st.session_state.results[
-                                                                "risk_factors"]] else "⚠️ Out of Range"
+                "Status": status
             })
         st.table(pd.DataFrame(comparison_data))
 
@@ -304,7 +394,6 @@ with tab3:
     if "results" not in st.session_state:
         st.warning("Please complete the risk assessment first.")
     else:
-        # Display general recommendations based on risk level
         risk_level = st.session_state.results["risk_level"]
         if risk_level == "Low":
             st.success("""
@@ -321,11 +410,12 @@ with tab3:
             **Your heart health needs attention**  
             Recommended actions:
             - Increase physical activity (aim for 30 mins/day)
-            - Reduce sodium and saturated fat intake
+            - Reduce sodium (<1500mg/day) and saturated fat intake
             - Quit smoking if applicable
-            - Limit alcohol consumption
+            - Limit alcohol to 1 drink/day (women) or 2/day (men)
             - Monitor blood pressure regularly
             - Schedule a doctor's visit within 3 months
+            - Consider cholesterol screening
             """)
         else:
             st.error("""
@@ -333,32 +423,20 @@ with tab3:
             Critical next steps:
             - Consult a cardiologist within 1 month
             - Begin a supervised exercise program
-            - Strict dietary modifications
+            - Strict dietary modifications (Mediterranean diet recommended)
             - Medication may be needed (doctor will advise)
-            - Regular monitoring of all risk factors
-            - Consider cardiac rehabilitation
+            - Regular monitoring of blood pressure and cholesterol
+            - Consider cardiac rehabilitation program
+            - Emergency care if chest pain or shortness of breath occurs
             """)
-
-        # AI Recommendations (Optional)
-        if chatbot:
-            st.subheader("AI Health Advisor")
-            # Pre-fill prompt based on risk factors
-            default_prompt = f"""I'm a {st.session_state.results['inputs']['age']} year old {st.session_state.results['inputs']['sex'].lower()} with {st.session_state.results['risk_level'].lower()} risk of heart disease. 
-            My key risk factors are: {', '.join([rf.split(':')[0].strip('- ') for rf in st.session_state.results['risk_factors']][:3])}.
-            Provide specific lifestyle recommendations to improve my heart health in these areas:"""
-            user_query = st.text_area("Ask for personalized advice:", value=default_prompt)
-            if st.button("Get AI Recommendations"):
-                with st.spinner("Generating personalized recommendations..."):
-                    try:
-                        response = chatbot.query(user_query)
-                        st.markdown(str(response))
-                    except Exception as e:
-                        st.error(f"Error getting recommendations: {e}")
 
 # Sidebar with sample profiles
 st.sidebar.header("Quick Start")
 profile = st.sidebar.selectbox("Load sample profile:", list(SAMPLE_PROFILES.keys()))
 if st.sidebar.button("Load Profile"):
+    for key in list(st.session_state.keys()):
+        if key in feature_info:
+            del st.session_state[key]
     for key, value in SAMPLE_PROFILES[profile].items():
         st.session_state[key] = value
     st.rerun()
